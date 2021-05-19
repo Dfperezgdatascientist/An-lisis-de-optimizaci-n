@@ -15,7 +15,9 @@ El objetivo de este trabajo es motivar los conceptos de error de regresión (lin
  + Bibliografía
  
  [1] https://www.r-graph-gallery.com/287-smooth-animation-with-tweenr.html
+ 
  [2] Linear Models with R, Julian J.Faraway https://rpubs.com/Joaquin_AR/226291
+ 
  [3] Points of Significance: Logistic regression Jake Lever, Martin Krzywinski & Naomi Altman. Nature Methods https://rpubs.com/Joaquin_AR/229736
 
 
