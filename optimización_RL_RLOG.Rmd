@@ -1,0 +1,299 @@
+---
+title: "Análisis de optimización"
+author: "*Daniel Felipe Pérez Grajales* <br/> *Universidad Nacional de Colombia - Sede Medellín* <br/><br/> *Efraín Galvis Amaya* <br/> *Universidad Nacional de Colombia - Sede Medellín* <br/> <br/> **Profesor**: *Juan David Ospina Arango* <br/> *Universidad Nacional de Colombia - Sede Medellín* <br/> *Departamento de Ciencias de la Computación y de la Decisión* <br/> *Decisiones bajo incertidumbre (Optimización para aprendizaje de máquina)*"
+date: "19 de mayo de 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+library(tidyverse)
+library(readr)
+library(DT)
+library(gganimate)
+
+datos_regresion <- read_delim("C:/Users/ACER/Desktop/Especializacion_IA/Decisiones bajo incertidumbre/Tareas/Actividad2/Datas/datos_regresion.csv", delim = " ")
+
+datos_logistica <- read_delim("C:/Users/ACER/Desktop/Especializacion_IA/Decisiones bajo incertidumbre/Tareas/Actividad2/Datas/datos_clasificacion.csv", delim = " ")
+
+
+```
+
+## 1. Optimizando un modelo lineal a ojo
+
+Considere el siguiente conjunto de datos:
+
+```{r , echo=FALSE}
+
+datatable(datos_regresion)
+
+```
+
+Los datos se ven así:
+
+```{r , echo=FALSE}
+#plot(datos_regresion$x,datos_regresion$y)
+plot(datos_regresion,
+     # col=(clase+2),
+     # pch=(clase+2),
+     #ylim=c(2,4),xlim=c(-,2),
+     #xaxt="n",yaxt="n",
+     xlab="x",
+     ylab="y",
+     main="x vs y"#,
+     #las=1,cex=1.5,lwd=2
+     )
+grid()
+# legend("topleft",legend=c("Grupo 1", "Grupo 2","Grupo 3"),
+#        pch=c(1,3,4),col=c(1,3,4),pt.lwd=2,pt.cex=1.8,bty="n")
+
+```
+
+**Objetivo**: determinar a ojo cuáles son los valores del intercepto y de la pendiente de la recta que mejor aproxime los puntos.
+Para cumplir el objetivo se puede escoger un punto en el espacio de parámetros y luego graficar la recta correspondiente, como se muestra a continuación:
+
+```{r , echo=FALSE}
+par(mfrow=c(1, 2))
+plot(1.9,2, 
+     pch = 17, 
+     col = "red",
+     xlab="Intercepto",
+     ylab="Pendiente",
+     main="Espacio de parámetros")
+plot(datos_regresion,
+     # col=(clase+2),
+     # pch=(clase+2),
+     #ylim=c(2,4),xlim=c(-,2),
+     #xaxt="n",yaxt="n",
+     xlab="x",
+     ylab="y",
+     main="x vs y"
+     )
+
+grid()
+
+```
+
+Con las funciones identify() y locator() es posible seleccionar un punto en el espacio de los parámetros (en la gráfica) y luego utilizar esos puntos para trazar la recta correspondiente con la función abline().
+
+*El procedimiento propuesto es el siguiente*:
+
+1. Proponga un punto en el espacio de parámetros
+
+```{r , echo=FALSE}
+
+plot(1.9,2, 
+     pch = 17, 
+     col = "red",
+     xlab="Intercepto",
+     ylab="Pendiente",
+     main="Espacio de parámetros")
+grid()
+
+```
+
+
+2. Grafique la recta sobre los puntos
+
+```{r , echo=FALSE}
+plot(datos_regresion,
+     # col=(clase+2),
+     # pch=(clase+2),
+     #ylim=c(2,4),xlim=c(-,2),
+     #xaxt="n",yaxt="n",
+     xlab="x",
+     ylab="y",
+     main="x vs y"
+     )
+## Busqueda manual pendiente
+abline(1.5, 1.7, col = 1)
+abline(1.6, 1.5, col = 3)
+abline(1.7, 1.4, col = 2)
+
+grid()
+
+```
+
+
+3. Repita los dos pasos anteriores hasta que usted se sienta satisfecho con el resultado
+
+Se eligío este:
+
+```{r , echo=FALSE}
+plot(datos_regresion,
+     # col=(clase+2),
+     # pch=(clase+2),
+     #ylim=c(2,4),xlim=c(-,2),
+     #xaxt="n",yaxt="n",
+     xlab="x",
+     ylab="y",
+     main="x vs y"
+     )
+
+abline(1.7, 1.4, col = 2)
+
+grid()
+
+```
+
+4. Al finalizar genere un gif animado que muestre cómo evolucionó el ajuste (los paquetes caTools, animation y magick en R son opciones para hacer animaciones).
+
+```{r , echo=FALSE}
+library(ggplot2)
+library(gganimate)
+ggplot(datos_regresion, aes(x, y)) + 
+  geom_point()+
+  geom_abline(intercept = 1.5, slope =1.7, colour='#3ce41a')+
+  geom_abline(intercept = 1.6, slope =1.5, colour='#271ae4')+
+  geom_abline(intercept = 1.7, slope =1.4, colour='#E41A1C')+
+  theme_minimal()+
+  transition_layers(keep_layers = T) 
+
+```
+
+
+## 2. Optimizando un modelo de regresión logística a ojo
+A continuación se propone repetir el procedimiento anterior para unos datos datos_clasificacion.csv. El objetivo es ajustar una curva logística a los datos a ojo. A continuación se muestra un ejemplo de una curva logística:
+
+
+Recordemos que para la regresión logística (univariada) se tiene que
+\[\begin{equation} Prob(Y=1|X=x)=\frac{1}{1+e^{-(\beta_0 + \beta_1 x)}}. \end{equation}\]
+Un ejemplo de dos curvas logísticas se muestra a continuación:
+
+
+```{r , echo=FALSE}
+#quartz(title="Modelo Logit") # creates a quartz window with title
+
+#plot() # plot with body size on x-axis and survival (0 or 1) on y-axis
+g=glm(y~x,family=binomial,datos_logistica) # run a logistic regression model (in this case, generalized linear model with logit link). see ?glm
+
+
+curve(predict(g,data.frame(x=x),type="resp"), xlab = "x", ylab = "Prob(Y=1|X=x)", col = "red",main = "Modelo logit")
+grid()# draws a curve based on prediction from logistic regression model
+
+```
+
+```{r , echo=FALSE}
+g=glm(y~x,family=binomial,datos_logistica) 
+par(mfrow=c(1, 2))
+plot(g$coefficients[1],g$coefficients[2], xlab = "B0", ylab = "B1", col = "green",
+     main = "Espacio de parámetros",pch = 5)
+grid()
+curve(predict(g,data.frame(x=x),type="resp"), xlab = "x", ylab = "Prob(Y=1|X=x)", col = "green",main = "Curva logística")
+# curve(predict(g,data.frame(x=x),type="resp"), col = "green", xlab = "x", ylab = "Prob(Y=1|X=x)", col = "red",main = "Curvas logísticas")
+grid()
+```
+
+El procedimiento propuesto es el siguiente:
+
+1. Divida el rango de la variable explicativa (es \(x\)) en 10 sub intervalos
+
+```{r , echo=FALSE}
+
+# Ploteamos los datos
+plot(datos_logistica$x, 
+     datos_logistica$y,
+     xlab="x",
+     ylab="y",
+     main="x vs y")
+# Segmentamos en 10 intervalos 
+abline(v = (seq(0,100,10))/100)
+grid()
+```
+
+segmentamos la variable x en 10 intervalos de secuencia de a 10.
+
+2. En el centro de cada subintervalo dibuje una línea vertical cuya altura sea la tasa de ocurrencias (unos) en ese subintervarvalo. Proponga un punto en el espacio de parámetros
+
+```{r , echo=FALSE}
+# segmentamos en el dataframe
+datos_logistica$cut <- cut(datos_logistica$x, seq(0,100,10)/100)
+# Definimos el eje X
+verticales <- (seq(0,100,10)-5)[-1]/100
+# Calculamos la tasa para cada grupo 
+datos_logistica <- merge(datos_logistica, as.data.frame(dplyr::group_by(datos_logistica, cut) %>% 
+                                dplyr::summarise(total = sum(y),
+                                                 cantidad = n(),
+                                                 tasa = total/cantidad)), by = "cut")
+# Creamos data frame para plotear
+tasas <- datos_logistica[,c(1,6)] %>% unique
+tasas$eje_x <- verticales
+# Altura sea la tasa de ocurrencia
+#lines(tasas$eje_x, tasas$tasa, type = "l", col = "red")
+
+# Iteramos manualmente las tasas
+tasas$al_ojo1 <- tasas$tasa
+tasas$al_ojo1[6] <- 0.04
+tasas$al_ojo1[9] <- 0.65
+tasas$al_ojo1[10] <- 0.80
+#lines(tasas$eje_x, tasas$al_ojo1, type = "l", col = "blue")
+
+ggplot(datos_logistica, aes(x, y)) + 
+  theme_minimal()+
+  geom_point()+
+  geom_vline(xintercept=seq(0,100,10)/100)+
+  geom_point(data = tasas, aes(x = eje_x, y = tasa), size = 5, colour = "red")+
+  geom_segment(data = tasas, aes(x= eje_x, xend=eje_x, y=0, yend=tasa), size = 2, colour = "red")
+
+```
+
+3. Grafique la curva logística sobre el gráfico anterior
+
+```{r , echo=FALSE}
+
+ggplot(datos_logistica, aes(x, y)) + 
+  theme_minimal()+
+  geom_point()+
+  # geom_smooth(method = "glm", se = FALSE,formula = y~x,
+  #             method.args = list(family = "binomial"), colour='#3ce41a')+
+  geom_vline(xintercept=seq(0,100,10)/100)+
+  geom_point(data = tasas, aes(x = eje_x, y = tasa), size = 5, colour = "red")+
+  #geom_vline(data = tasas, aes(x = eje_x, y = tasa), size = 5, colour = "red")+
+  geom_segment(data = tasas, aes(x= eje_x, xend=eje_x, y=0, yend=tasa), size = 2, colour = "red")+
+  geom_line(data = tasas, aes(x = eje_x, y = tasa), size = 1, colour = "red")
+
+```
+
+4. Repita los dos pasos anteriores hasta que usted se sienta satisfecho con el resultado
+
+```{r , echo=FALSE}
+
+ggplot(datos_logistica, aes(x, y)) + 
+  theme_minimal()+
+  geom_point()+
+  geom_vline(xintercept=seq(0,100,10)/100)+
+  geom_point(data = tasas, aes(x = eje_x, y = tasa), size = 5, colour = "red")+
+  geom_segment(data = tasas, aes(x= eje_x, xend=eje_x, y=0, yend=tasa), size = 2, colour = "red")+
+  geom_line(data = tasas, aes(x = eje_x, y = tasa), size = 1, colour = "red") +
+  geom_point(data = tasas, aes(x = eje_x, y = al_ojo1), size = 5, colour = "blue")+
+  geom_segment(data = tasas, aes(x= eje_x, xend=eje_x, y=0, yend=al_ojo1), size = 2, colour = "blue")+
+  geom_line(data = tasas, aes(x = eje_x, y = al_ojo1), size = 1, colour = "blue") +
+  geom_smooth(method = "glm", se = FALSE,formula = y~x,
+              method.args = list(family = "binomial"), colour='#3ce41a')
+
+```
+
+5. Al finalizar genere un gif animado que muestre cómo evolucionó el ajuste.
+
+```{r , echo=FALSE}
+ggplot(datos_logistica, aes(x, y)) + 
+  theme_minimal()+
+  geom_point()+
+  geom_vline(xintercept=seq(0,100,10)/100)+
+  geom_point(data = tasas, aes(x = eje_x, y = tasa), size = 5, colour = "red")+
+  geom_segment(data = tasas, aes(x= eje_x, xend=eje_x, y=0, yend=tasa), size = 2, colour = "red")+
+  geom_line(data = tasas, aes(x = eje_x, y = tasa), size = 1, colour = "red") +
+  geom_point(data = tasas, aes(x = eje_x, y = al_ojo1), size = 5, colour = "blue")+
+  geom_segment(data = tasas, aes(x= eje_x, xend=eje_x, y=0, yend=al_ojo1), size = 2, colour = "blue")+
+  geom_line(data = tasas, aes(x = eje_x, y = al_ojo1), size = 1, colour = "blue") +
+  geom_smooth(method = "glm", se = FALSE,formula = y~x,
+              method.args = list(family = "binomial"), colour='#3ce41a')+
+  transition_layers()
+
+
+```
+
+
+
